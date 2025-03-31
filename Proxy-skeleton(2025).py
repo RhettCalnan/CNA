@@ -150,6 +150,8 @@ while True:
       # originServerRequest is the first line in the request and
       # originServerRequestHeader is the second line in the request
       # ~~~~ INSERT CODE ~~~~
+      originServerRequest = f"{method} {resource} {version}"
+      originServerRequestHeader = f"Host: {hostname}"
       # ~~~~ END CODE INSERT ~~~~
 
       # Construct the request to send to the origin server
