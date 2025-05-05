@@ -44,7 +44,7 @@ static bool acked[SEQSPACE];
 static int send_base;
 static int next_seqnum;
 
-/* is x in [send_base .. send_base+WINDOWSIZE-1]? */
+/* check if x is in the send window */
 static bool in_send_window(int x)
 {
     int dist = (x - send_base + SEQSPACE) % SEQSPACE;
@@ -153,6 +153,7 @@ static struct pkt recvbuf[SEQSPACE];
 static bool recvd[SEQSPACE];
 static int recv_base;
 
+/* check if x is in the receive window */
 static bool in_recv_window(int x)
 {
     int dist = (x - recv_base + SEQSPACE) % SEQSPACE;
@@ -173,18 +174,30 @@ void B_input(struct pkt packet)
     struct pkt ackpkt;
     int i;
 
-    if (!IsCorrupted(packet) && in_recv_window(sn) && !recvd[sn])
+    if (!IsCorrupted(packet) && in_recv_window(sn))
     {
         if (TRACE > 0)
             printf("----B: packet %d is correctly received, send ACK!\n", sn);
-        recvbuf[sn] = packet;
-        recvd[sn] = true;
-        while (recvd[recv_base])
+        if (sn == recv_base)
         {
-            tolayer5(B, recvbuf[recv_base].payload);
+            /* deliver in-order packet */
+            tolayer5(B, packet.payload);
             packets_received++;
-            recvd[recv_base] = false;
             recv_base = (recv_base + 1) % SEQSPACE;
+            /* deliver any buffered in-order packets */
+            while (recvd[recv_base])
+            {
+                tolayer5(B, recvbuf[recv_base].payload);
+                packets_received++;
+                recvd[recv_base] = false;
+                recv_base = (recv_base + 1) % SEQSPACE;
+            }
+        }
+        else
+        {
+            /* buffer out-of-order packet */
+            recvbuf[sn] = packet;
+            recvd[sn] = true;
         }
         ackpkt.acknum = sn;
     }
