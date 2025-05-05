@@ -5,13 +5,14 @@
 #include "sr.h"
 
 /* ******************************************************************
-   Selective-Repeat Protocol (C89-compliant)
+   Selective-Repeat Protocol
 **********************************************************************/
 
-#define RTT 16.0     /* MUST be set to 16.0 for submission */
-#define WINDOWSIZE 6 /* MUST be set to 6 for submission */
-#define SEQSPACE (WINDOWSIZE + 1)
-#define NOTINUSE (-1)
+#define RTT 16.0      /* round trip time.  MUST BE SET TO 16.0 when submitting assignment */
+#define WINDOWSIZE 6  /* the maximum number of buffered unacked packet \
+                        MUST BE SET TO 6 when submitting assignment */
+#define SEQSPACE 7    /* the min sequence space for GBN must be at least windowsize + 1 */
+#define NOTINUSE (-1) /* used to fill header fields that are not being used */
 
 /* Emulator counters (defined in emulator.c) */
 extern int total_ACKs_received;
@@ -40,9 +41,7 @@ bool IsCorrupted(struct pkt packet)
     return (packet.checksum != ComputeChecksum(packet));
 }
 
-/*––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––*/
-/*                        SENDER (A) state                        */
-/*––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––*/
+/* Sender (A) */
 
 static struct pkt buffer[SEQSPACE]; /* store packets by seq number */
 static bool acked[SEQSPACE];
@@ -163,9 +162,7 @@ void A_timerinterrupt(void)
     starttimer(A, RTT);
 }
 
-/*––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––*/
-/*                       RECEIVER (B) state                       */
-/*––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––*/
+/*  Receiver (B) */
 
 static struct pkt recvbuf[SEQSPACE];
 static bool recvd[SEQSPACE];
