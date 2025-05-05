@@ -60,7 +60,6 @@ static bool in_send_window(int x)
 void A_init(void)
 {
     int i;
-
     send_base = 0;
     next_seqnum = 0;
     for (i = 0; i < SEQSPACE; i++)
@@ -184,7 +183,6 @@ static bool in_recv_window(int x)
 void B_init(void)
 {
     int i;
-
     recv_base = 0;
     B_nextseqnum = 1;
     for (i = 0; i < SEQSPACE; i++)
@@ -228,6 +226,7 @@ void B_input(struct pkt packet)
                 if (TRACE > 0)
                     printf("----B_input: delivering packet %d to layer5\n", recv_base);
                 tolayer5(B, recvbuf[recv_base].payload);
+                packets_received++;
                 recvd[recv_base] = false;
                 recv_base = (recv_base + 1) % SEQSPACE;
             }
